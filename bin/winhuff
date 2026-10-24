@@ -1,0 +1,13 @@
+#!/bin/sh
+# Lets users invoke the jar as a plain `winhuff` command once this file is on path.
+# Also resolves symlinks so it still finds the jar when installed via `ln -s`.
+self="$0"
+while [ -h "$self" ]; do
+    link=$(readlink "$self")
+    case "$link" in
+        /*) self="$link" ;;
+        *) self="$(dirname "$self")/$link" ;;
+    esac
+done
+dir=$(cd "$(dirname "$self")" && pwd)
+exec java -jar "$dir/../build/libs/huff.jar" "$@"
