@@ -23,7 +23,11 @@ internal class BitWriter(private val out: OutputStream) {
         }
     }
 
-    /** Pads the final partial byte with zeros; the decoder ignores them because the symbol count is in the header. */
+    /**
+     * Pads the final partial byte with zeros. Blocks end on a byte boundary so
+     * the decoder can resynchronise without tracking bit offsets across
+     * blocks; the padding is ignored because each block states its symbol count.
+     */
     fun finish() {
         if (nbits > 0) {
             out.write(((acc shl (8 - nbits)) and 0xFF).toInt())
@@ -34,8 +38,8 @@ internal class BitWriter(private val out: OutputStream) {
 
 /**
  * Decoding needs to look at the next few bits without committing to
- * consuming them (the code length is unknown until the lookup of course), 
- * so this reader exposes peek/skip rather.
+ * consuming them, because a code's length is only known once the lookup has
+ * matched it. That is why this reader exposes peek/skip rather than a plain read.
  */
 internal class BitReader(private val input: InputStream) {
     private val buf = ByteArray(1 shl 16)
@@ -45,8 +49,11 @@ internal class BitReader(private val input: InputStream) {
     private var nbits = 0
     private var padBits = 0
 
-    /** Becomes True once the decoder has consumed zero-padding that was 
-     * synthesized past end of input (in other words it was truncated) */
+    /**
+     * True once the decoder has consumed zero bits that were synthesized past
+     * the end of input, i.e. the stream was truncated. Padding is synthesized
+     * so peek() can always look a full window ahead near the end.
+     */
     val overran: Boolean get() = nbits < padBits
 
     private fun nextByte(): Int {
@@ -88,4 +95,16 @@ internal class BitReader(private val input: InputStream) {
         skip(count)
         return v
     }
+
+    /**
+     * Drops the zero padding the writer added to finish a block. Read-ahead
+     * only ever holds whole bytes beyond the current one, so the leftover
+     * bits modulo 8 are exactly that padding.
+     */
+    fun alignToByte() {
+        nbits -= nbits % 8
+    }
+
+    /** Used after the end marker to reject files with extra bytes appended. */
+    fun hasMoreData(): Boolean = nbits > padBits || nextByte() >= 0
 }

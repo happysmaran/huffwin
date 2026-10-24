@@ -104,12 +104,13 @@ private fun printStats(s: Stats) {
     val ratio = if (s.originalBytes == 0L) 0.0 else 100.0 * s.compressedBytes / s.originalBytes
     println("original size:      ${s.originalBytes} bytes")
     println("compressed size:    ${s.compressedBytes} bytes (${"%.2f".format(ratio)}% of original)")
+    println("blocks:             ${s.blocks}")
     println("distinct symbols:   ${s.distinctSymbols}")
-    println("entropy:            ${"%.4f".format(s.entropyBitsPerSymbol)} bits/symbol")
-    println("average code length:${"%.4f".format(s.averageCodeBits).padStart(8)} bits/symbol")
+    println("entropy:            ${"%.4f".format(s.entropyBitsPerSymbol)} bits/symbol (whole input, order 0)")
+    println("average code length:${"%.4f".format(s.averageCodeBits).padStart(8)} bits/symbol (as actually coded)")
     println("longest code:       ${s.maxCodeLength} bits")
     println()
-    println("byte  count        bits")
+    println("byte  count        bits (single whole-input table)")
     s.lengths.indices
         .filter { s.lengths[it] > 0 }
         .sortedByDescending { s.frequencies[it] }
@@ -128,13 +129,12 @@ private fun run(args: Array<String>) {
     }
     val opts = parseArgs(args)
     when (opts.command) {
-        "stats" -> {
-            val data = openInput(opts.input).use { it.readBytes() }
-            printStats(computeStats(data))
-        }
+        "stats" -> openInput(opts.input).use { printStats(computeStats(it)) }
         "compress" -> {
-            val data = openInput(opts.input).use { it.readBytes() }
-            withOutput(opts.output ?: defaultOutput("compress", opts.input), opts.force) { compress(data, it) }
+            val dest = opts.output ?: defaultOutput("compress", opts.input)
+            openInput(opts.input).use { input ->
+                withOutput(dest, opts.force) { compress(input, it) }
+            }
         }
         "decompress" -> {
             val dest = opts.output ?: defaultOutput("decompress", opts.input)

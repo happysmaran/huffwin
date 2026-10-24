@@ -16,9 +16,20 @@ const val MAX_CODE_LENGTH = 24
 /** Width of the decoder's fast lookup table. Codes at most this long resolve in one array access. */
 const val TABLE_BITS = 12
 
+/**
+ * Uncompressed bytes per block. A static Huffman code needs the symbol counts
+ * before the first output bit, so the encoder has to hold one block at a time.
+ */
+const val BLOCK_SIZE = 1 shl 20
+
+/** Largest block the decoder accepts; rejects corrupt length fields instead of looping on garbage. */
+private const val MAX_BLOCK_SIZE = 1 shl 24
+
 private const val ALPHABET = 256
 private const val LENGTH_FIELD_BITS = 5
-private val MAGIC = byteArrayOf('H'.code.toByte(), 'U'.code.toByte(), 'F'.code.toByte(), '1'.code.toByte())
+private const val BLOCK_LENGTH_BITS = 32
+private const val BLOCK_HEADER_BYTES = (BLOCK_LENGTH_BITS + ALPHABET * LENGTH_FIELD_BITS) / 8
+private val MAGIC = byteArrayOf('H'.code.toByte(), 'U'.code.toByte(), 'F'.code.toByte(), '2'.code.toByte())
 
 private class Node(
     val weight: Long,
@@ -33,9 +44,9 @@ private val nodeOrder = Comparator<Node> { a, b ->
     if (a.weight != b.weight) a.weight.compareTo(b.weight) else a.order.compareTo(b.order)
 }
 
-fun countFrequencies(data: ByteArray): LongArray {
+fun countFrequencies(data: ByteArray, length: Int = data.size): LongArray {
     val freq = LongArray(ALPHABET)
-    for (b in data) freq[b.toInt() and 0xFF]++
+    for (i in 0 until length) freq[data[i].toInt() and 0xFF]++
     return freq
 }
 
@@ -110,6 +121,7 @@ class CanonicalCode(val lengths: IntArray) {
         for (l in 1..MAX_CODE_LENGTH) kraft += countAtLength[l].toLong() shl (MAX_CODE_LENGTH - l)
         val used = lengths.count { it > 0 }
         val full = 1L shl MAX_CODE_LENGTH
+        if (used == 0) throw FormatException("block has no symbols")
         if (used > 1 && kraft != full) throw FormatException("code lengths do not form a complete prefix code")
         if (used == 1 && kraft != full / 2) throw FormatException("invalid single-symbol code")
 
@@ -134,33 +146,42 @@ class CanonicalCode(val lengths: IntArray) {
     }
 }
 
-private fun writeLong(out: OutputStream, v: Long) {
-    for (i in 7 downTo 0) out.write(((v ushr (8 * i)) and 0xFF).toInt())
-}
+/**
+ * Reads up to a full block from [input]. A pipe can deliver short reads, and
+ * a block that is not filled would waste a table header on a few bytes, so
+ * this keeps reading until the block is full or the input ends.
+ */
+private fun readBlock(input: InputStream, buf: ByteArray): Int = input.readNBytes(buf, 0, buf.size)
 
-private fun readLong(input: InputStream): Long {
-    var v = 0L
-    repeat(8) {
-        val b = input.read()
-        if (b < 0) throw FormatException("truncated header")
-        v = (v shl 8) or b.toLong()
-    }
-    return v
-}
-
-/** Writes a complete .huff stream. Takes the whole input because the code table needs global frequencies before the first output bit. */
-fun compress(data: ByteArray, out: OutputStream) {
+/**
+ * Compresses [input] block by block, so memory stays bounded by [blockSize]
+ * no matter how much data (or how slow a pipe) is behind the stream.
+ * [blockSize] is a parameter so tests and benchmarks can exercise block
+ * boundaries and block-size effects on small data.
+ */
+fun compress(input: InputStream, out: OutputStream, blockSize: Int = BLOCK_SIZE) {
+    require(blockSize in 1..MAX_BLOCK_SIZE)
     out.write(MAGIC)
-    writeLong(out, data.size.toLong())
-    if (data.isEmpty()) return
-
-    val code = CanonicalCode(codeLengths(countFrequencies(data)))
     val writer = BitWriter(out)
+    val buf = ByteArray(blockSize)
+    while (true) {
+        val n = readBlock(input, buf)
+        if (n == 0) break
+        writeBlock(writer, buf, n)
+    }
+    // An explicit end marker is what lets the decoder tell a complete stream from one cut short at a block boundary.
+    writer.write(0, BLOCK_LENGTH_BITS)
+    writer.finish()
+}
+
+private fun writeBlock(writer: BitWriter, data: ByteArray, n: Int) {
+    val code = CanonicalCode(codeLengths(countFrequencies(data, n)))
+    writer.write(n, BLOCK_LENGTH_BITS)
     for (s in 0 until ALPHABET) writer.write(code.lengths[s], LENGTH_FIELD_BITS)
     val codes = code.codes
     val lens = code.lengths
-    for (b in data) {
-        val s = b.toInt() and 0xFF
+    for (i in 0 until n) {
+        val s = data[i].toInt() and 0xFF
         writer.write(codes[s], lens[s])
     }
     writer.finish()
@@ -180,54 +201,59 @@ fun decompress(input: InputStream, out: OutputStream, useTable: Boolean = true) 
         got += n
     }
     if (!magic.contentEquals(MAGIC)) throw FormatException("not a huff file (bad magic)")
-    val total = readLong(input)
-    if (total < 0) throw FormatException("invalid length in header")
-    if (total == 0L) return
 
     val reader = BitReader(input)
-    val lengths = IntArray(ALPHABET) { reader.read(LENGTH_FIELD_BITS) }
-    if (reader.overran) throw FormatException("truncated header")
-    val code = CanonicalCode(lengths)
-
-    val table = if (useTable) buildTable(code) else null
     val outBuf = ByteArray(1 shl 16)
     var outPos = 0
-    var remaining = total
-    val maxLen = code.maxLength
-    val tableBits = minOf(TABLE_BITS, maxLen)
+    while (true) {
+        val blockLength = reader.read(BLOCK_LENGTH_BITS)
+        if (reader.overran) throw FormatException("truncated data (missing end marker)")
+        if (blockLength == 0) break
+        if (blockLength < 0 || blockLength > MAX_BLOCK_SIZE) throw FormatException("invalid block length")
 
-    while (remaining > 0) {
-        var symbol = -1
-        var len = 0
-        if (table != null) {
-            val entry = table[reader.peek(tableBits)]
-            if (entry != 0) {
-                symbol = entry ushr 8
-                len = entry and 0xFF
-            }
-        }
-        if (symbol < 0) {
-            val window = reader.peek(maxLen)
-            for (l in 1..maxLen) {
-                val c = window ushr (maxLen - l)
-                val offset = c - code.firstCode[l]
-                if (offset >= 0 && offset < code.countAtLength[l]) {
-                    symbol = code.sortedSymbols[code.firstIndex[l] + offset]
-                    len = l
-                    break
+        val lengths = IntArray(ALPHABET) { reader.read(LENGTH_FIELD_BITS) }
+        if (reader.overran) throw FormatException("truncated header")
+        val code = CanonicalCode(lengths)
+
+        val table = if (useTable) buildTable(code) else null
+        val maxLen = code.maxLength
+        val tableBits = minOf(TABLE_BITS, maxLen)
+        var remaining = blockLength
+        while (remaining > 0) {
+            var symbol = -1
+            var len = 0
+            if (table != null) {
+                val entry = table[reader.peek(tableBits)]
+                if (entry != 0) {
+                    symbol = entry ushr 8
+                    len = entry and 0xFF
                 }
             }
-            if (symbol < 0) throw FormatException("corrupt data: no matching code")
+            if (symbol < 0) {
+                val window = reader.peek(maxLen)
+                for (l in 1..maxLen) {
+                    val c = window ushr (maxLen - l)
+                    val offset = c - code.firstCode[l]
+                    if (offset >= 0 && offset < code.countAtLength[l]) {
+                        symbol = code.sortedSymbols[code.firstIndex[l] + offset]
+                        len = l
+                        break
+                    }
+                }
+                if (symbol < 0) throw FormatException("corrupt data: no matching code")
+            }
+            reader.skip(len)
+            outBuf[outPos++] = symbol.toByte()
+            if (outPos == outBuf.size) {
+                out.write(outBuf, 0, outPos)
+                outPos = 0
+            }
+            remaining--
         }
-        reader.skip(len)
-        outBuf[outPos++] = symbol.toByte()
-        if (outPos == outBuf.size) {
-            out.write(outBuf, 0, outPos)
-            outPos = 0
-        }
-        remaining--
+        if (reader.overran) throw FormatException("truncated data")
+        reader.alignToByte()
     }
-    if (reader.overran) throw FormatException("truncated data")
+    if (reader.hasMoreData()) throw FormatException("unexpected data after end marker")
     out.write(outBuf, 0, outPos)
 }
 
@@ -250,10 +276,16 @@ private fun buildTable(code: CanonicalCode): IntArray {
     return table
 }
 
-/** Summary used by the `stats` command to show how close Huffman gets to the entropy bound. */
+/**
+ * Summary used by the `stats` command to show how close Huffman gets to the
+ * entropy bound. Sizes and [averageCodeBits] describe the real block-wise
+ * output; [lengths] is the code a single whole-input table would use, which
+ * is the order-0 reference the entropy figure applies to.
+ */
 data class Stats(
     val originalBytes: Long,
     val compressedBytes: Long,
+    val blocks: Long,
     val entropyBitsPerSymbol: Double,
     val averageCodeBits: Double,
     val distinctSymbols: Int,
@@ -262,29 +294,49 @@ data class Stats(
     val frequencies: LongArray,
 )
 
-fun computeStats(data: ByteArray): Stats {
-    val freq = countFrequencies(data)
-    val n = data.size.toLong()
-    if (n == 0L) return Stats(0, 12, 0.0, 0.0, 0, 0, IntArray(ALPHABET), freq)
-    val lengths = codeLengths(freq)
-    var entropy = 0.0
-    var bits = 0L
-    for (s in 0 until ALPHABET) {
-        if (freq[s] > 0) {
-            val p = freq[s].toDouble() / n
-            entropy -= p * (Math.log(p) / Math.log(2.0))
+/** Streams [input] block by block, mirroring compress(), so stats on a pipe use the same bounded memory. */
+fun computeStats(input: InputStream, blockSize: Int = BLOCK_SIZE): Stats {
+    require(blockSize in 1..MAX_BLOCK_SIZE)
+    val total = LongArray(ALPHABET)
+    val buf = ByteArray(blockSize)
+    var n = 0L
+    var blocks = 0L
+    var payloadBits = 0L
+    var payloadBytes = 0L
+    var maxLen = 0
+    while (true) {
+        val got = readBlock(input, buf)
+        if (got == 0) break
+        val freq = countFrequencies(buf, got)
+        val lengths = codeLengths(freq)
+        var bits = 0L
+        for (s in 0 until ALPHABET) {
+            total[s] += freq[s]
             bits += freq[s] * lengths[s]
         }
+        n += got
+        blocks++
+        payloadBits += bits
+        payloadBytes += (bits + 7) / 8
+        maxLen = maxOf(maxLen, lengths.max())
     }
-    val headerBytes = 4L + 8L + (ALPHABET * LENGTH_FIELD_BITS + 7) / 8
+    val fixedBytes = MAGIC.size + BLOCK_LENGTH_BITS / 8L
+    var entropy = 0.0
+    for (s in 0 until ALPHABET) {
+        if (total[s] > 0) {
+            val p = total[s].toDouble() / n
+            entropy -= p * (Math.log(p) / Math.log(2.0))
+        }
+    }
     return Stats(
         originalBytes = n,
-        compressedBytes = headerBytes + (bits + 7) / 8,
+        compressedBytes = fixedBytes + blocks * BLOCK_HEADER_BYTES + payloadBytes,
+        blocks = blocks,
         entropyBitsPerSymbol = entropy,
-        averageCodeBits = bits.toDouble() / n,
-        distinctSymbols = freq.count { it > 0 },
-        maxCodeLength = lengths.max(),
-        lengths = lengths,
-        frequencies = freq,
+        averageCodeBits = if (n == 0L) 0.0 else payloadBits.toDouble() / n,
+        distinctSymbols = total.count { it > 0 },
+        maxCodeLength = maxLen,
+        lengths = if (n == 0L) IntArray(ALPHABET) else codeLengths(total),
+        frequencies = total,
     )
 }

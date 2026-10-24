@@ -1,10 +1,5 @@
 package huff
 
-/**
- * Binary min-heap used instead of java.util.PriorityQueue so the Huffman
- * construction step is an explicit data-structure exercise for the course and
- * so tie-breaking is fully under our control (needed for reproducible output).
- */
 internal class MinHeap<T>(private val order: Comparator<T>) {
     private var items = arrayOfNulls<Any?>(16)
     var size = 0
