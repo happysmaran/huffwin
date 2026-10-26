@@ -100,7 +100,7 @@ private fun StringBuilder.throughputSection(categories: Map<String, List<FileRes
     }
     for ((category, list) in categories) {
         for (r in list) rows += row(category, r.name, listOf(r))
-        if (list.size > 1) rows += row("**$category total**", "", list).map { if (it.isEmpty() || it == "-") it else "**$it**" }
+        if (list.size > 1) rows += row("**$category total**", "", list).mapIndexed { i, cell -> if (i == 0 || cell.isEmpty() || cell == "-") cell else "**$cell**" }
     }
     appendLine(table(listOf("Category", "File", "huff compress", "huff decode (table)", "huff decode (bit-by-bit)", "Table speedup", "Deflater -9 compress", "Inflater decode"), rows))
 }
@@ -126,7 +126,7 @@ private fun StringBuilder.commandLineSection(categories: Map<String, List<FileRe
 private fun StringBuilder.blockSection(categories: Map<String, List<FileResult>>) {
     appendLine("## 4. Effect of block size on huff's ratio")
     appendLine()
-    appendLine("huff output size as a percentage of the original for different block sizes (each block carries a 164-byte table). Smaller blocks adapt faster to changing data but pay the table more often; the default is 1024 KiB.")
+    appendLine("huff output size as a percentage of the original for different block sizes (each block carries a 164-byte table). Smaller blocks adapt faster to changing data but pay the table more often; the default is ${huff.BLOCK_SIZE / 1024} KiB.")
     appendLine()
     val header = listOf("Category", "File") + BLOCK_SIZES.map { "${it / 1024} KiB" }
     val rows = mutableListOf<List<String>>()

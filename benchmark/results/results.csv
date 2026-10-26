@@ -1,161 +1,161 @@
 category,file,original_bytes,order0_entropy_bytes,contender,compressed_bytes,compress_seconds,decompress_seconds,in_process
-binary,kennedy.xls,1029744,459970.0,huff,462704,0.002923,0.005343,true
-binary,kennedy.xls,1029744,459970.0,huff (bit-by-bit decode),462704,,0.003927,true
-binary,kennedy.xls,1029744,459970.0,Deflater -6,204004,0.019259,0.001337,true
-binary,kennedy.xls,1029744,459970.0,Deflater -9,207041,0.248505,0.001325,true
-binary,kennedy.xls,1029744,459970.0,huff CLI,462704,0.174166,0.160842,false
-binary,kennedy.xls,1029744,459970.0,gzip -6,206767,0.096178,0.075846,false
-binary,kennedy.xls,1029744,459970.0,gzip -9,209721,0.308973,0.074022,false
-binary,kennedy.xls,1029744,459970.0,xz -9,49124,0.254385,0.076018,false
-binary,ptt5,513216,77635.2,huff,106723,0.001793,0.002340,true
-binary,ptt5,513216,77635.2,huff (bit-by-bit decode),106723,,0.001950,true
-binary,ptt5,513216,77635.2,Deflater -6,56477,0.006586,0.000608,true
-binary,ptt5,513216,77635.2,Deflater -9,52233,0.045252,0.000559,true
-binary,ptt5,513216,77635.2,huff CLI,106723,0.163717,0.156433,false
-binary,ptt5,513216,77635.2,gzip -6,56438,0.076905,0.071457,false
-binary,ptt5,513216,77635.2,gzip -9,52377,0.112660,0.072499,false
-binary,ptt5,513216,77635.2,xz -9,42000,0.156165,0.074438,false
-binary,sum,38240,25472.6,huff,25817,0.000292,0.000132,true
-binary,sum,38240,25472.6,huff (bit-by-bit decode),25817,,0.000303,true
-binary,sum,38240,25472.6,Deflater -6,13002,0.001113,0.000126,true
-binary,sum,38240,25472.6,Deflater -9,12850,0.006642,0.000119,true
-binary,sum,38240,25472.6,huff CLI,25817,0.157229,0.152169,false
-binary,sum,38240,25472.6,gzip -6,12920,0.073860,0.070415,false
-binary,sum,38240,25472.6,gzip -9,12768,0.075995,0.070639,false
-binary,sum,38240,25472.6,xz -9,9460,0.094260,0.072049,false
-compressed,bible.txt.gz,1191897,1191743.1,huff,1192233,0.002641,0.003136,true
-compressed,bible.txt.gz,1191897,1191743.1,huff (bit-by-bit decode),1192233,,0.006540,true
-compressed,bible.txt.gz,1191897,1191743.1,Deflater -6,1192280,0.020217,0.000398,true
-compressed,bible.txt.gz,1191897,1191743.1,Deflater -9,1192280,0.020022,0.000400,true
-compressed,bible.txt.gz,1191897,1191743.1,huff CLI,1192233,0.181508,0.161845,false
-compressed,bible.txt.gz,1191897,1191743.1,gzip -6,1192100,0.091650,0.072559,false
-compressed,bible.txt.gz,1191897,1191743.1,gzip -9,1192100,0.090319,0.072258,false
-compressed,bible.txt.gz,1191897,1191743.1,xz -9,1192024,0.342152,0.074778,false
-compressed,jdk-java-base.java.gz,1543093,1542967.7,huff,1543429,0.003352,0.004063,true
-compressed,jdk-java-base.java.gz,1543093,1542967.7,huff (bit-by-bit decode),1543429,,0.008993,true
-compressed,jdk-java-base.java.gz,1543093,1542967.7,Deflater -6,1539566,0.027183,0.000960,true
-compressed,jdk-java-base.java.gz,1543093,1542967.7,Deflater -9,1539566,0.027350,0.000985,true
-compressed,jdk-java-base.java.gz,1543093,1542967.7,huff CLI,1543429,0.194232,0.165833,false
-compressed,jdk-java-base.java.gz,1543093,1542967.7,gzip -6,1539338,0.096717,0.074587,false
-compressed,jdk-java-base.java.gz,1543093,1542967.7,gzip -9,1539338,0.102076,0.072819,false
-compressed,jdk-java-base.java.gz,1543093,1542967.7,xz -9,1539944,0.407050,0.074828,false
-compressed,world192.txt.gz,724982,724800.2,huff,725154,0.001689,0.001906,true
-compressed,world192.txt.gz,724982,724800.2,huff (bit-by-bit decode),725154,,0.004037,true
-compressed,world192.txt.gz,724982,724800.2,Deflater -6,725225,0.012319,0.000210,true
-compressed,world192.txt.gz,724982,724800.2,Deflater -9,725225,0.012923,0.000224,true
-compressed,world192.txt.gz,724982,724800.2,huff CLI,725154,0.172129,0.160486,false
-compressed,world192.txt.gz,724982,724800.2,gzip -6,725115,0.084520,0.071550,false
-compressed,world192.txt.gz,724982,724800.2,gzip -9,725115,0.083083,0.072294,false
-compressed,world192.txt.gz,724982,724800.2,xz -9,725084,0.243263,0.075912,false
-dna,E.coli,4638690,1159568.9,huff,1160501,0.008376,0.010568,true
-dna,E.coli,4638690,1159568.9,huff (bit-by-bit decode),1160501,,0.009054,true
-dna,E.coli,4638690,1159568.9,Deflater -6,1342002,0.629409,0.010554,true
-dna,E.coli,4638690,1159568.9,Deflater -9,1299729,2.939480,0.010366,true
-dna,E.coli,4638690,1159568.9,huff CLI,1160501,0.191558,0.181318,false
-dna,E.coli,4638690,1159568.9,gzip -6,1341243,0.640566,0.089354,false
-dna,E.coli,4638690,1159568.9,gzip -9,1299059,2.752599,0.092722,false
-dna,E.coli,4638690,1159568.9,xz -9,1186496,2.271000,0.096028,false
-random,random-4MiB.bin,4194304,4194283.4,huff,4194968,0.008456,0.010442,true
-random,random-4MiB.bin,4194304,4194283.4,huff (bit-by-bit decode),4194968,,0.024095,true
-random,random-4MiB.bin,4194304,4194283.4,Deflater -6,4195602,0.075097,0.001202,true
-random,random-4MiB.bin,4194304,4194283.4,Deflater -9,4195602,0.075750,0.001238,true
-random,random-4MiB.bin,4194304,4194283.4,huff CLI,4194968,0.232844,0.184429,false
-random,random-4MiB.bin,4194304,4194283.4,gzip -6,4194962,0.140452,0.078932,false
-random,random-4MiB.bin,4194304,4194283.4,gzip -9,4194962,0.142622,0.077198,false
-random,random-4MiB.bin,4194304,4194283.4,xz -9,4194584,1.024843,0.082440,false
-source,cp.html,24603,16081.6,huff,16371,0.000153,0.000086,true
-source,cp.html,24603,16081.6,huff (bit-by-bit decode),16371,,0.000191,true
-source,cp.html,24603,16081.6,Deflater -6,7973,0.000371,0.000068,true
-source,cp.html,24603,16081.6,Deflater -9,7952,0.000428,0.000069,true
-source,cp.html,24603,16081.6,huff CLI,16371,0.157314,0.151319,false
-source,cp.html,24603,16081.6,gzip -6,7991,0.071097,0.069736,false
-source,cp.html,24603,16081.6,gzip -9,7973,0.072345,0.070725,false
-source,cp.html,24603,16081.6,xz -9,7652,0.086840,0.071668,false
-source,fields.c,11150,6979.5,huff,7198,0.000108,0.000045,true
-source,fields.c,11150,6979.5,huff (bit-by-bit decode),7198,,0.000094,true
-source,fields.c,11150,6979.5,Deflater -6,3134,0.000170,0.000031,true
-source,fields.c,11150,6979.5,Deflater -9,3127,0.000203,0.000029,true
-source,fields.c,11150,6979.5,huff CLI,7198,0.158407,0.149107,false
-source,fields.c,11150,6979.5,gzip -6,3134,0.071591,0.070198,false
-source,fields.c,11150,6979.5,gzip -9,3127,0.070882,0.070161,false
-source,fields.c,11150,6979.5,xz -9,3036,0.082229,0.071816,false
-source,grammar.lsp,3721,2154.6,huff,2342,0.000079,0.000020,true
-source,grammar.lsp,3721,2154.6,huff (bit-by-bit decode),2342,,0.000029,true
-source,grammar.lsp,3721,2154.6,Deflater -6,1234,0.000054,0.000010,true
-source,grammar.lsp,3721,2154.6,Deflater -9,1234,0.000044,0.000009,true
-source,grammar.lsp,3721,2154.6,huff CLI,2342,0.155989,0.150910,false
-source,grammar.lsp,3721,2154.6,gzip -6,1234,0.071389,0.070722,false
-source,grammar.lsp,3721,2154.6,gzip -9,1234,0.071842,0.070063,false
-source,grammar.lsp,3721,2154.6,xz -9,1300,0.080373,0.072309,false
-source,huffwin-src.kt,29723,17870.9,huff,18114,0.000189,0.000133,true
-source,huffwin-src.kt,29723,17870.9,huff (bit-by-bit decode),18114,,0.000253,true
-source,huffwin-src.kt,29723,17870.9,Deflater -6,9231,0.000532,0.000090,true
-source,huffwin-src.kt,29723,17870.9,Deflater -9,9201,0.001195,0.000090,true
-source,huffwin-src.kt,29723,17870.9,huff CLI,18114,0.156216,0.149508,false
-source,huffwin-src.kt,29723,17870.9,gzip -6,9231,0.071816,0.070448,false
-source,huffwin-src.kt,29723,17870.9,gzip -9,9201,0.071693,0.071301,false
-source,huffwin-src.kt,29723,17870.9,xz -9,8840,0.088511,0.072631,false
-source,jdk-java-base.java,8388608,4982316.2,huff,4941284,0.033591,0.028877,true
-source,jdk-java-base.java,8388608,4982316.2,huff (bit-by-bit decode),4941284,,0.066628,true
-source,jdk-java-base.java,8388608,4982316.2,Deflater -6,1543093,0.141951,0.015141,true
-source,jdk-java-base.java,8388608,4982316.2,Deflater -9,1523779,0.507185,0.014664,true
-source,jdk-java-base.java,8388608,4982316.2,huff CLI,4941284,0.254555,0.214276,false
-source,jdk-java-base.java,8388608,4982316.2,gzip -6,1544511,0.197737,0.094607,false
-source,jdk-java-base.java,8388608,4982316.2,gzip -9,1524663,0.552145,0.094007,false
-source,jdk-java-base.java,8388608,4982316.2,xz -9,1054844,1.788182,0.099879,false
-source,xargs.1,4227,2588.2,huff,2774,0.000079,0.000022,true
-source,xargs.1,4227,2588.2,huff (bit-by-bit decode),2774,,0.000042,true
-source,xargs.1,4227,2588.2,Deflater -6,1748,0.000063,0.000014,true
-source,xargs.1,4227,2588.2,Deflater -9,1748,0.000052,0.000012,true
-source,xargs.1,4227,2588.2,huff CLI,2774,0.159054,0.149377,false
-source,xargs.1,4227,2588.2,gzip -6,1748,0.071493,0.069704,false
-source,xargs.1,4227,2588.2,gzip -9,1748,0.070403,0.070297,false
-source,xargs.1,4227,2588.2,xz -9,1820,0.081599,0.072120,false
-text,alice29.txt,152089,86836.7,huff,87860,0.000629,0.000500,true
-text,alice29.txt,152089,86836.7,huff (bit-by-bit decode),87860,,0.001399,true
-text,alice29.txt,152089,86836.7,Deflater -6,54416,0.005231,0.000492,true
-text,alice29.txt,152089,86836.7,Deflater -9,54182,0.007569,0.000481,true
-text,alice29.txt,152089,86836.7,huff CLI,87860,0.157886,0.153317,false
-text,alice29.txt,152089,86836.7,gzip -6,54423,0.075227,0.071560,false
-text,alice29.txt,152089,86836.7,gzip -9,54179,0.078415,0.072314,false
-text,alice29.txt,152089,86836.7,xz -9,48500,0.111234,0.074989,false
-text,asyoulik.txt,125179,75234.4,huff,75978,0.000499,0.000392,true
-text,asyoulik.txt,125179,75234.4,huff (bit-by-bit decode),75978,,0.001139,true
-text,asyoulik.txt,125179,75234.4,Deflater -6,48909,0.004675,0.000428,true
-text,asyoulik.txt,125179,75234.4,Deflater -9,48790,0.005940,0.000430,true
-text,asyoulik.txt,125179,75234.4,huff CLI,75978,0.158588,0.153442,false
-text,asyoulik.txt,125179,75234.4,gzip -6,48938,0.076045,0.071482,false
-text,asyoulik.txt,125179,75234.4,gzip -9,48816,0.076088,0.070933,false
-text,asyoulik.txt,125179,75234.4,xz -9,44544,0.107188,0.073060,false
-text,bible.txt,4047392,2197102.2,huff,2216800,0.013977,0.012443,true
-text,bible.txt,4047392,2197102.2,huff (bit-by-bit decode),2216800,,0.033774,true
-text,bible.txt,4047392,2197102.2,Deflater -6,1191897,0.136169,0.010638,true
-text,bible.txt,4047392,2197102.2,Deflater -9,1177362,0.280432,0.010439,true
-text,bible.txt,4047392,2197102.2,huff CLI,2216800,0.203075,0.182767,false
-text,bible.txt,4047392,2197102.2,gzip -6,1191061,0.199786,0.087839,false
-text,bible.txt,4047392,2197102.2,gzip -9,1176635,0.347553,0.088125,false
-text,bible.txt,4047392,2197102.2,xz -9,885192,1.213638,0.090890,false
-text,lcet10.txt,426754,249070.6,huff,250737,0.001519,0.001384,true
-text,lcet10.txt,426754,249070.6,huff (bit-by-bit decode),250737,,0.003585,true
-text,lcet10.txt,426754,249070.6,Deflater -6,144916,0.013407,0.001290,true
-text,lcet10.txt,426754,249070.6,Deflater -9,144451,0.018050,0.001289,true
-text,lcet10.txt,426754,249070.6,huff CLI,250737,0.165602,0.154314,false
-text,lcet10.txt,426754,249070.6,gzip -6,144874,0.085135,0.073188,false
-text,lcet10.txt,426754,249070.6,gzip -9,144418,0.089055,0.071874,false
-text,lcet10.txt,426754,249070.6,xz -9,119508,0.167214,0.074140,false
-text,plrabn12.txt,481861,272935.9,huff,275757,0.001732,0.001580,true
-text,plrabn12.txt,481861,272935.9,huff (bit-by-bit decode),275757,,0.004711,true
-text,plrabn12.txt,481861,272935.9,Deflater -6,195273,0.021541,0.001657,true
-text,plrabn12.txt,481861,272935.9,Deflater -9,194344,0.033503,0.001581,true
-text,plrabn12.txt,481861,272935.9,huff CLI,275757,0.163199,0.157725,false
-text,plrabn12.txt,481861,272935.9,gzip -6,195195,0.094866,0.072819,false
-text,plrabn12.txt,481861,272935.9,gzip -9,194264,0.104822,0.073958,false
-text,plrabn12.txt,481861,272935.9,xz -9,165420,0.178508,0.074816,false
-text,world192.txt,2473400,1545353.7,huff,1556689,0.010248,0.008381,true
-text,world192.txt,2473400,1545353.7,huff (bit-by-bit decode),1556689,,0.023653,true
-text,world192.txt,2473400,1545353.7,Deflater -6,724982,0.053742,0.006616,true
-text,world192.txt,2473400,1545353.7,Deflater -9,721957,0.088140,0.006770,true
-text,world192.txt,2473400,1545353.7,huff CLI,1556689,0.191208,0.174139,false
-text,world192.txt,2473400,1545353.7,gzip -6,724593,0.123887,0.080438,false
-text,world192.txt,2473400,1545353.7,gzip -9,721400,0.156561,0.080575,false
-text,world192.txt,2473400,1545353.7,xz -9,487500,0.595623,0.083729,false
+binary,kennedy.xls,1029744,459970.0,huff,456256,0.004742,0.005320,true
+binary,kennedy.xls,1029744,459970.0,huff (bit-by-bit decode),456256,,0.003427,true
+binary,kennedy.xls,1029744,459970.0,Deflater -6,204004,0.019232,0.001312,true
+binary,kennedy.xls,1029744,459970.0,Deflater -9,207041,0.250857,0.001403,true
+binary,kennedy.xls,1029744,459970.0,huff CLI,456256,0.172863,0.160986,false
+binary,kennedy.xls,1029744,459970.0,gzip -6,206767,0.088031,0.073722,false
+binary,kennedy.xls,1029744,459970.0,gzip -9,209721,0.310373,0.072891,false
+binary,kennedy.xls,1029744,459970.0,xz -9,49124,0.255928,0.076707,false
+binary,ptt5,513216,77635.2,huff,106799,0.001705,0.001238,true
+binary,ptt5,513216,77635.2,huff (bit-by-bit decode),106799,,0.001579,true
+binary,ptt5,513216,77635.2,Deflater -6,56477,0.006723,0.000675,true
+binary,ptt5,513216,77635.2,Deflater -9,52233,0.046230,0.000545,true
+binary,ptt5,513216,77635.2,huff CLI,106799,0.160521,0.158054,false
+binary,ptt5,513216,77635.2,gzip -6,56438,0.078112,0.073666,false
+binary,ptt5,513216,77635.2,gzip -9,52377,0.114015,0.070264,false
+binary,ptt5,513216,77635.2,xz -9,42000,0.155342,0.073007,false
+binary,sum,38240,25472.6,huff,25817,0.000194,0.000128,true
+binary,sum,38240,25472.6,huff (bit-by-bit decode),25817,,0.000307,true
+binary,sum,38240,25472.6,Deflater -6,13002,0.001094,0.000123,true
+binary,sum,38240,25472.6,Deflater -9,12850,0.006520,0.000118,true
+binary,sum,38240,25472.6,huff CLI,25817,0.154338,0.151200,false
+binary,sum,38240,25472.6,gzip -6,12920,0.070672,0.070159,false
+binary,sum,38240,25472.6,gzip -9,12768,0.077557,0.070324,false
+binary,sum,38240,25472.6,xz -9,9460,0.090548,0.072092,false
+compressed,bible.txt.gz,1191897,1191743.1,huff,1191925,0.000684,0.000087,true
+compressed,bible.txt.gz,1191897,1191743.1,huff (bit-by-bit decode),1191925,,0.000068,true
+compressed,bible.txt.gz,1191897,1191743.1,Deflater -6,1192280,0.021623,0.000376,true
+compressed,bible.txt.gz,1191897,1191743.1,Deflater -9,1192280,0.021295,0.000375,true
+compressed,bible.txt.gz,1191897,1191743.1,huff CLI,1191925,0.157377,0.150532,false
+compressed,bible.txt.gz,1191897,1191743.1,gzip -6,1192100,0.091549,0.071882,false
+compressed,bible.txt.gz,1191897,1191743.1,gzip -9,1192100,0.091025,0.072471,false
+compressed,bible.txt.gz,1191897,1191743.1,xz -9,1192024,0.340438,0.075761,false
+compressed,jdk-java-base.java.gz,1543093,1542967.7,huff,1543125,0.000695,0.000094,true
+compressed,jdk-java-base.java.gz,1543093,1542967.7,huff (bit-by-bit decode),1543125,,0.000094,true
+compressed,jdk-java-base.java.gz,1543093,1542967.7,Deflater -6,1539566,0.027702,0.000957,true
+compressed,jdk-java-base.java.gz,1543093,1542967.7,Deflater -9,1539566,0.027449,0.001044,true
+compressed,jdk-java-base.java.gz,1543093,1542967.7,huff CLI,1543125,0.158442,0.151760,false
+compressed,jdk-java-base.java.gz,1543093,1542967.7,gzip -6,1539338,0.096786,0.073732,false
+compressed,jdk-java-base.java.gz,1543093,1542967.7,gzip -9,1539338,0.096426,0.073086,false
+compressed,jdk-java-base.java.gz,1543093,1542967.7,xz -9,1539944,0.412403,0.075150,false
+compressed,world192.txt.gz,724982,724800.2,huff,725002,0.000349,0.000062,true
+compressed,world192.txt.gz,724982,724800.2,huff (bit-by-bit decode),725002,,0.000067,true
+compressed,world192.txt.gz,724982,724800.2,Deflater -6,725225,0.012428,0.000262,true
+compressed,world192.txt.gz,724982,724800.2,Deflater -9,725225,0.012497,0.000220,true
+compressed,world192.txt.gz,724982,724800.2,huff CLI,725002,0.155579,0.147120,false
+compressed,world192.txt.gz,724982,724800.2,gzip -6,725115,0.082344,0.069774,false
+compressed,world192.txt.gz,724982,724800.2,gzip -9,725115,0.085375,0.070324,false
+compressed,world192.txt.gz,724982,724800.2,xz -9,725084,0.245800,0.072892,false
+dna,E.coli,4638690,1159568.9,huff,1162633,0.007950,0.011182,true
+dna,E.coli,4638690,1159568.9,huff (bit-by-bit decode),1162633,,0.014643,true
+dna,E.coli,4638690,1159568.9,Deflater -6,1342002,0.627745,0.010602,true
+dna,E.coli,4638690,1159568.9,Deflater -9,1299729,2.918238,0.010420,true
+dna,E.coli,4638690,1159568.9,huff CLI,1162633,0.188141,0.182882,false
+dna,E.coli,4638690,1159568.9,gzip -6,1341243,0.639683,0.088146,false
+dna,E.coli,4638690,1159568.9,gzip -9,1299059,2.756907,0.091854,false
+dna,E.coli,4638690,1159568.9,xz -9,1186496,2.215480,0.095771,false
+random,random-4MiB.bin,4194304,4194283.4,huff,4194376,0.001477,0.000171,true
+random,random-4MiB.bin,4194304,4194283.4,huff (bit-by-bit decode),4194376,,0.000209,true
+random,random-4MiB.bin,4194304,4194283.4,Deflater -6,4195602,0.072188,0.001187,true
+random,random-4MiB.bin,4194304,4194283.4,Deflater -9,4195602,0.074713,0.001246,true
+random,random-4MiB.bin,4194304,4194283.4,huff CLI,4194376,0.163846,0.152701,false
+random,random-4MiB.bin,4194304,4194283.4,gzip -6,4194962,0.141037,0.076359,false
+random,random-4MiB.bin,4194304,4194283.4,gzip -9,4194962,0.139746,0.076117,false
+random,random-4MiB.bin,4194304,4194283.4,xz -9,4194584,1.015854,0.081018,false
+source,cp.html,24603,16081.6,huff,16371,0.000100,0.000087,true
+source,cp.html,24603,16081.6,huff (bit-by-bit decode),16371,,0.000209,true
+source,cp.html,24603,16081.6,Deflater -6,7973,0.000381,0.000074,true
+source,cp.html,24603,16081.6,Deflater -9,7952,0.000439,0.000071,true
+source,cp.html,24603,16081.6,huff CLI,16371,0.156837,0.149853,false
+source,cp.html,24603,16081.6,gzip -6,7991,0.070732,0.069521,false
+source,cp.html,24603,16081.6,gzip -9,7973,0.070147,0.070698,false
+source,cp.html,24603,16081.6,xz -9,7652,0.087287,0.071453,false
+source,fields.c,11150,6979.5,huff,7198,0.000059,0.000044,true
+source,fields.c,11150,6979.5,huff (bit-by-bit decode),7198,,0.000098,true
+source,fields.c,11150,6979.5,Deflater -6,3134,0.000168,0.000031,true
+source,fields.c,11150,6979.5,Deflater -9,3127,0.000198,0.000031,true
+source,fields.c,11150,6979.5,huff CLI,7198,0.153902,0.147179,false
+source,fields.c,11150,6979.5,gzip -6,3134,0.070598,0.070059,false
+source,fields.c,11150,6979.5,gzip -9,3127,0.069915,0.069561,false
+source,fields.c,11150,6979.5,xz -9,3036,0.082701,0.070626,false
+source,grammar.lsp,3721,2154.6,huff,2342,0.000030,0.000020,true
+source,grammar.lsp,3721,2154.6,huff (bit-by-bit decode),2342,,0.000027,true
+source,grammar.lsp,3721,2154.6,Deflater -6,1234,0.000056,0.000010,true
+source,grammar.lsp,3721,2154.6,Deflater -9,1234,0.000046,0.000008,true
+source,grammar.lsp,3721,2154.6,huff CLI,2342,0.154689,0.151716,false
+source,grammar.lsp,3721,2154.6,gzip -6,1234,0.070107,0.069352,false
+source,grammar.lsp,3721,2154.6,gzip -9,1234,0.069874,0.068867,false
+source,grammar.lsp,3721,2154.6,xz -9,1300,0.081181,0.070016,false
+source,huffwin-src.kt,29723,17870.9,huff,18114,0.000135,0.000106,true
+source,huffwin-src.kt,29723,17870.9,huff (bit-by-bit decode),18114,,0.000255,true
+source,huffwin-src.kt,29723,17870.9,Deflater -6,9231,0.000528,0.000090,true
+source,huffwin-src.kt,29723,17870.9,Deflater -9,9201,0.001179,0.000088,true
+source,huffwin-src.kt,29723,17870.9,huff CLI,18114,0.158450,0.153339,false
+source,huffwin-src.kt,29723,17870.9,gzip -6,9231,0.072046,0.069157,false
+source,huffwin-src.kt,29723,17870.9,gzip -9,9201,0.070126,0.070329,false
+source,huffwin-src.kt,29723,17870.9,xz -9,8840,0.087860,0.071014,false
+source,jdk-java-base.java,8388608,4982316.2,huff,4881959,0.034219,0.028355,true
+source,jdk-java-base.java,8388608,4982316.2,huff (bit-by-bit decode),4881959,,0.067256,true
+source,jdk-java-base.java,8388608,4982316.2,Deflater -6,1543093,0.138812,0.015318,true
+source,jdk-java-base.java,8388608,4982316.2,Deflater -9,1523779,0.509887,0.014708,true
+source,jdk-java-base.java,8388608,4982316.2,huff CLI,4881959,0.248291,0.209788,false
+source,jdk-java-base.java,8388608,4982316.2,gzip -6,1544511,0.198539,0.093820,false
+source,jdk-java-base.java,8388608,4982316.2,gzip -9,1524663,0.548316,0.093024,false
+source,jdk-java-base.java,8388608,4982316.2,xz -9,1054844,1.739004,0.097422,false
+source,xargs.1,4227,2588.2,huff,2774,0.000029,0.000021,true
+source,xargs.1,4227,2588.2,huff (bit-by-bit decode),2774,,0.000040,true
+source,xargs.1,4227,2588.2,Deflater -6,1748,0.000059,0.000013,true
+source,xargs.1,4227,2588.2,Deflater -9,1748,0.000050,0.000012,true
+source,xargs.1,4227,2588.2,huff CLI,2774,0.155381,0.146761,false
+source,xargs.1,4227,2588.2,gzip -6,1748,0.070944,0.069776,false
+source,xargs.1,4227,2588.2,gzip -9,1748,0.071604,0.068766,false
+source,xargs.1,4227,2588.2,xz -9,1820,0.080144,0.070664,false
+text,alice29.txt,152089,86836.7,huff,87860,0.000559,0.000494,true
+text,alice29.txt,152089,86836.7,huff (bit-by-bit decode),87860,,0.001313,true
+text,alice29.txt,152089,86836.7,Deflater -6,54416,0.005299,0.000490,true
+text,alice29.txt,152089,86836.7,Deflater -9,54182,0.007622,0.000489,true
+text,alice29.txt,152089,86836.7,huff CLI,87860,0.158431,0.152539,false
+text,alice29.txt,152089,86836.7,gzip -6,54423,0.074974,0.070401,false
+text,alice29.txt,152089,86836.7,gzip -9,54179,0.077190,0.070737,false
+text,alice29.txt,152089,86836.7,xz -9,48500,0.111039,0.072243,false
+text,asyoulik.txt,125179,75234.4,huff,75978,0.000440,0.000411,true
+text,asyoulik.txt,125179,75234.4,huff (bit-by-bit decode),75978,,0.001179,true
+text,asyoulik.txt,125179,75234.4,Deflater -6,48909,0.004768,0.000432,true
+text,asyoulik.txt,125179,75234.4,Deflater -9,48790,0.005954,0.000408,true
+text,asyoulik.txt,125179,75234.4,huff CLI,75978,0.156942,0.154137,false
+text,asyoulik.txt,125179,75234.4,gzip -6,48938,0.074721,0.070198,false
+text,asyoulik.txt,125179,75234.4,gzip -9,48816,0.075677,0.070127,false
+text,asyoulik.txt,125179,75234.4,xz -9,44544,0.105266,0.071739,false
+text,bible.txt,4047392,2197102.2,huff,2216078,0.013591,0.012572,true
+text,bible.txt,4047392,2197102.2,huff (bit-by-bit decode),2216078,,0.036872,true
+text,bible.txt,4047392,2197102.2,Deflater -6,1191897,0.135674,0.011156,true
+text,bible.txt,4047392,2197102.2,Deflater -9,1177362,0.279195,0.011017,true
+text,bible.txt,4047392,2197102.2,huff CLI,2216078,0.199807,0.179629,false
+text,bible.txt,4047392,2197102.2,gzip -6,1191061,0.200366,0.087563,false
+text,bible.txt,4047392,2197102.2,gzip -9,1176635,0.345988,0.086145,false
+text,bible.txt,4047392,2197102.2,xz -9,885192,1.224913,0.089378,false
+text,lcet10.txt,426754,249070.6,huff,250618,0.001448,0.001337,true
+text,lcet10.txt,426754,249070.6,huff (bit-by-bit decode),250618,,0.003758,true
+text,lcet10.txt,426754,249070.6,Deflater -6,144916,0.013692,0.001252,true
+text,lcet10.txt,426754,249070.6,Deflater -9,144451,0.017513,0.001222,true
+text,lcet10.txt,426754,249070.6,huff CLI,250618,0.163747,0.155070,false
+text,lcet10.txt,426754,249070.6,gzip -6,144874,0.083651,0.071098,false
+text,lcet10.txt,426754,249070.6,gzip -9,144418,0.088237,0.072018,false
+text,lcet10.txt,426754,249070.6,xz -9,119508,0.164739,0.074343,false
+text,plrabn12.txt,481861,272935.9,huff,275887,0.001593,0.001557,true
+text,plrabn12.txt,481861,272935.9,huff (bit-by-bit decode),275887,,0.004356,true
+text,plrabn12.txt,481861,272935.9,Deflater -6,195273,0.020628,0.001614,true
+text,plrabn12.txt,481861,272935.9,Deflater -9,194344,0.032878,0.001605,true
+text,plrabn12.txt,481861,272935.9,huff CLI,275887,0.162430,0.155650,false
+text,plrabn12.txt,481861,272935.9,gzip -6,195195,0.091087,0.073517,false
+text,plrabn12.txt,481861,272935.9,gzip -9,194264,0.102970,0.072047,false
+text,plrabn12.txt,481861,272935.9,xz -9,165420,0.179334,0.074868,false
+text,world192.txt,2473400,1545353.7,huff,1555891,0.010167,0.008546,true
+text,world192.txt,2473400,1545353.7,huff (bit-by-bit decode),1555891,,0.024336,true
+text,world192.txt,2473400,1545353.7,Deflater -6,724982,0.055811,0.006388,true
+text,world192.txt,2473400,1545353.7,Deflater -9,721957,0.085455,0.006378,true
+text,world192.txt,2473400,1545353.7,huff CLI,1555891,0.187227,0.169657,false
+text,world192.txt,2473400,1545353.7,gzip -6,724593,0.122437,0.079726,false
+text,world192.txt,2473400,1545353.7,gzip -9,721400,0.155570,0.079742,false
+text,world192.txt,2473400,1545353.7,xz -9,487500,0.591240,0.082824,false

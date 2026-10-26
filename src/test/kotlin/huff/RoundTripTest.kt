@@ -106,7 +106,8 @@ class RoundTripTest {
             repeat(a.toInt()) { out.write(sym) }
             val next = a + b; a = b; b = next
         }
-        assertRoundTrip(out.toByteArray())
+        // The skew only produces over-long codes if the whole input lands in one block, so the block is made larger than the data.
+        assertRoundTrip(out.toByteArray(), blockSize = 1 shl 23)
     }
 
     @Test fun deterministicOutput() {

@@ -24,7 +24,7 @@ const val TABLE_BITS = 12
  * pipes. It is large enough that the per-block table is a negligible
  * overhead and small enough to track changes in the data's statistics.
  */
-const val BLOCK_SIZE = 1 shl 20
+const val BLOCK_SIZE = 256 * 1024
 
 /** Largest block the decoder accepts; rejects corrupt length fields instead of looping on garbage. */
 private const val MAX_BLOCK_SIZE = 1 shl 24

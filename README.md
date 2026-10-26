@@ -1,18 +1,18 @@
 # huffwin
 
-A simple Huffman-coding file compressor written in Kotlin, usable as a terminal command.
-It streams: memory use is bounded by one block (1 MiB) regardless of input size, so it works
-on large files and on pipes.
+A Huffman-coding file compressor written in Kotlin. It runs as a command, `huff`, and works on
+files and on pipes. It reads the input one 256 KiB block at a time, so memory use stays small
+even on huge files.
 
 ## Build
 
-Requires JDK 17+ and Gradle.
+You need JDK 17 or newer and Gradle.
 
     gradle jar test
     ./bin/winhuff --help
 
-The launcher is a POSIX shell script, so on Windows run it from Git Bash or WSL.
-To use it anywhere as `huff`, symlink the launcher onto your `PATH`:
+`winhuff` is a shell script, so on Windows run it from Git Bash or WSL. To call it as `huff`
+from anywhere, symlink it onto your `PATH`:
 
     ln -s "$PWD/bin/winhuff" ~/.local/bin/huff
 
@@ -24,37 +24,48 @@ To use it anywhere as `huff`, symlink the launcher onto your `PATH`:
     cat notes.txt | huff compress | huff decompress
     huff stats      notes.txt            # entropy, average code length, per-byte code lengths
 
-Exit status is 0 on success, 1 for a bad command line, and 2 for corrupt input or I/O errors.
+Exit status is 0 on success, 1 for a bad command line, and 2 for corrupt input or an I/O error.
 
 ## File format
 
-A stream is the magic bytes, then one or more blocks, then an end marker.
+A file is the magic bytes, then one or more blocks, then an end marker.
 
 | Field | Size |
 |---|---|
 | Magic `HUF2` | 4 bytes |
-| Block word: number of uncompressed bytes in the block (big-endian, never 0), with the top bit set for a stored block | 32 bits |
-| Huffman block: code length for each of the 256 byte values, 0 meaning unused | 256 x 5 bits |
+| Block word: number of uncompressed bytes in the block (big-endian, never 0). The top bit marks a stored block. | 32 bits |
+| Huffman block: code length for each of the 256 byte values, 0 for unused | 256 x 5 bits |
 | Huffman block: coded payload, MSB first, zero-padded to a byte | variable |
 | Stored block: the raw bytes, in place of the table and payload | block length bytes |
 | End marker: a block word of 0 | 4 bytes |
 
-Each block covers up to 1 MiB of input and carries its own code table, so the encoder only has
-to hold one block in memory (a static Huffman code needs the symbol counts before it can emit
-the first bit) and the codes follow the data if its statistics change partway through.
-A block is written raw (stored) whenever Huffman coding would not make it smaller, so incompressible
-input such as random or already-compressed data costs 4 bytes per block rather than a 164-byte table
-plus coded data that is no shorter than the original.
-The end marker lets the decoder tell a complete stream from one that was cut off at a block
-boundary; bytes after the end marker are rejected.
+Each block covers up to 256 KiB of input and has its own code table. The encoder has to count
+symbols before it writes the first bit, so one block at a time keeps its memory bounded. The
+separate tables also let the codes follow the data when its statistics change partway through.
 
-Only code lengths are stored. Codes are assigned canonically (equal-length codes are consecutive
-integers in byte order), so encoder and decoder rebuild identical codes from the lengths alone.
-Code lengths are capped at 24 bits.
+If Huffman coding wouldn't make a block smaller, huff stores the block raw. Random and
+already-compressed data then cost 4 bytes per block instead of a 164-byte table plus coded
+data that is no shorter than the original.
+
+The end marker tells the decoder the file is complete, so a file cut off at a block boundary
+gets rejected. Extra bytes after the marker get rejected too.
+
+huff stores only the code lengths, not the tree. The decoder rebuilds the same codes from the
+lengths: equal-length codes are consecutive integers in byte order (canonical Huffman). Codes
+are at most 24 bits long. When plain Huffman would go longer, huff finds the best code that
+fits the limit using package-merge.
+
+## Benchmarks
+
+The `benchmark/` folder compares huff with gzip and xz. Its README explains how to run it.
+
+## Documentation
+
+`docs/algorithm.md` explains how the algorithm works, why it is optimal, and the choices in this implementation.
 
 ## Layout
 
-- `MinHeap.kt` - binary min-heap used for tree construction
+- `MinHeap.kt` - binary min-heap for building the tree
 - `BitIO.kt` - bit-level writer and peek/skip reader
 - `Huffman.kt` - code lengths, canonical codes, block-wise compress/decompress, table-driven decoding, stats
 - `Main.kt` - command-line interface
