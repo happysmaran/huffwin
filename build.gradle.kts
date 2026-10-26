@@ -1,5 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
+    // Kotlin releases before 2.2 cannot parse the version string of JDK 25, so the compiler crashes on machines that run Gradle with it.
+    kotlin("jvm") version "2.3.0"
     application
 }
 
@@ -11,8 +12,15 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+// Targeting Java 17 bytecode instead of pinning a toolchain lets the build run on whichever JDK (17 or newer)
+// is installed, without Gradle needing to find or download a separate JDK 17.
 kotlin {
-    jvmToolchain(17)
+    compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 application {

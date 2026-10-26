@@ -58,6 +58,46 @@ class RoundTripTest {
         CanonicalCode(lengths) // throws if the capped lengths are not a complete prefix code
     }
 
+    private fun cost(freq: LongArray, lengths: IntArray) = freq.indices.sumOf { freq[it] * lengths[it] }
+
+    private fun kraftIsComplete(lengths: IntArray, maxLength: Int) =
+        lengths.filter { it > 0 }.sumOf { 1L shl (maxLength - it) } == 1L shl maxLength
+
+    // Exhaustive search over every length assignment is the only independent proof that the capped code is really the best one under the cap.
+    private fun bruteForceCost(weights: List<Long>, maxLength: Int): Long {
+        var best = Long.MAX_VALUE
+        fun go(i: Int, kraft: Long, total: Long) {
+            if (i == weights.size) {
+                if (kraft == 1L shl maxLength) best = minOf(best, total)
+                return
+            }
+            for (l in 1..maxLength) go(i + 1, kraft + (1L shl (maxLength - l)), total + weights[i] * l)
+        }
+        go(0, 0, 0)
+        return best
+    }
+
+    @Test fun cappedLengthsMatchBruteForceOptimum() {
+        val rng = Random(11)
+        repeat(60) {
+            val n = 2 + rng.nextInt(6)
+            val cap = (32 - Integer.numberOfLeadingZeros(n - 1)) + rng.nextInt(3)
+            val weights = List(n) { 1L + rng.nextInt(100) * rng.nextInt(100) }
+            val freq = LongArray(256)
+            weights.forEachIndexed { i, w -> freq[i * 3] = w }
+            val lengths = limitedCodeLengths(freq, cap)
+            assertTrue(lengths.max() <= cap)
+            assertTrue(kraftIsComplete(lengths, cap), "lengths must form a complete code")
+            assertEquals(bruteForceCost(weights, cap), cost(freq, lengths), "weights=$weights cap=$cap")
+        }
+    }
+
+    @Test fun capDoesNotCostAnythingWhenItIsNotBinding() {
+        val freq = LongArray(256) { if (it < 50) (it * it + 1L) else 0L }
+        val unlimited = codeLengths(freq)
+        assertEquals(cost(freq, unlimited), cost(freq, limitedCodeLengths(freq, unlimited.max())))
+    }
+
     @Test fun skewedDataBeyondCapRoundTrips() {
         val out = ByteArrayOutputStream()
         var a = 1L
@@ -77,8 +117,43 @@ class RoundTripTest {
     // Sizes straddling a block boundary catch off-by-one errors in block splitting and byte alignment.
     @Test fun blockBoundaries() {
         for (size in listOf(999, 1000, 1001, 1999, 2000, 2001, 3000)) {
-            assertRoundTrip(Random(size).nextBytes(size), blockSize = 1000)
+            assertRoundTrip(lowEntropy(size, seed = size), blockSize = 1000)
         }
+    }
+
+    // 3 bits of entropy per byte, so Huffman blocks win over stored ones; uniform random bytes would take the stored path instead.
+    private fun lowEntropy(size: Int, seed: Int): ByteArray {
+        val rng = Random(seed)
+        return ByteArray(size) { rng.nextInt(8).toByte() }
+    }
+
+    @Test fun incompressibleDataIsStoredWithTinyOverhead() {
+        val data = Random(12).nextBytes(100_000)
+        // 4 magic + 4 block word + payload + 4 end marker.
+        assertEquals(data.size + 12, pack(data).size)
+        assertRoundTrip(data)
+    }
+
+    @Test fun compressibleDataIsNotStored() {
+        val data = lowEntropy(100_000, seed = 13)
+        assertTrue(pack(data).size < data.size * 0.5)
+        assertRoundTrip(data)
+    }
+
+    // A stream can switch between stored and Huffman blocks, and the byte alignment each leaves behind has to line up.
+    @Test fun mixedStoredAndHuffmanBlocks() {
+        val random = Random(14).nextBytes(3_000)
+        val text = lowEntropy(3_000, seed = 15)
+        assertRoundTrip(random + text + random + text + random, blockSize = 3_000)
+        assertRoundTrip(text + random + text, blockSize = 1_000)
+    }
+
+    @Test fun allByteValuesWithSkewedFrequencies() {
+        val out = ByteArrayOutputStream()
+        for (s in 0 until 256) repeat(1 + s * s / 50) { out.write(s) }
+        val data = out.toByteArray()
+        assertTrue(pack(data).size < data.size, "skewed frequencies over 256 symbols should use Huffman")
+        assertRoundTrip(data)
     }
 
     @Test fun oneByteBlocks() = assertRoundTrip(Random(9).nextBytes(300), blockSize = 1)
@@ -138,7 +213,7 @@ class RoundTripTest {
     }
 
     @Test fun rejectsCorruptCodeLengths() {
-        val packed = pack(Random(10).nextBytes(500))
+        val packed = pack(lowEntropy(2_000, seed = 10))
         val bad = packed.copyOf()
         // Bytes 8..167 are the block's code-length table; zeroing it leaves a block with no symbols.
         for (i in 8 until 168) bad[i] = 0

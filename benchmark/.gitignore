@@ -1,0 +1,4 @@
+# The corpus is large and re-creatable with `prepare`; reports and CSVs are kept so results can be committed with the write-up.
+data/
+build/
+.gradle/

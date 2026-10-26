@@ -8,8 +8,9 @@ class FormatException(message: String) : Exception(message)
 
 /**
  * Longest code length the format allows. Capping it keeps every code inside a
- * 32-bit write and bounds the decoder's fallback search; the cost is a
- * negligible loss of optimality on pathological (Fibonacci-like) inputs.
+ * 32-bit write, fit the 5-bit length field in the header, and bounds the
+ * decoder's fallback search. It only binds on pathological (Fibonacci-like)
+ * inputs, where limitedCodeLengths gives the best code possible under it.
  */
 const val MAX_CODE_LENGTH = 24
 
@@ -18,7 +19,10 @@ const val TABLE_BITS = 12
 
 /**
  * Uncompressed bytes per block. A static Huffman code needs the symbol counts
- * before the first output bit, so the encoder has to hold one block at a time.
+ * before the first output bit, so the encoder has to hold one block at a
+ * time; this size is what bounds memory for arbitrarily large input and
+ * pipes. It is large enough that the per-block table is a negligible
+ * overhead and small enough to track changes in the data's statistics.
  */
 const val BLOCK_SIZE = 1 shl 20
 
@@ -29,6 +33,13 @@ private const val ALPHABET = 256
 private const val LENGTH_FIELD_BITS = 5
 private const val BLOCK_LENGTH_BITS = 32
 private const val BLOCK_HEADER_BYTES = (BLOCK_LENGTH_BITS + ALPHABET * LENGTH_FIELD_BITS) / 8
+
+/**
+ * Set in a block's length word when its payload is the raw bytes instead of
+ * Huffman codes. Lengths never exceed MAX_BLOCK_SIZE (25 bits), so the top bit is free.
+ */
+private const val STORED_FLAG = 1 shl 31
+private const val STORED_HEADER_BYTES = BLOCK_LENGTH_BITS / 8
 private val MAGIC = byteArrayOf('H'.code.toByte(), 'U'.code.toByte(), 'F'.code.toByte(), '2'.code.toByte())
 
 private class Node(
@@ -57,13 +68,68 @@ fun countFrequencies(data: ByteArray, length: Int = data.size): LongArray {
  */
 fun codeLengths(frequencies: LongArray): IntArray {
     require(frequencies.size == ALPHABET)
-    var freq = frequencies.copyOf()
-    while (true) {
-        val lengths = buildLengths(freq)
-        if (lengths.max() <= MAX_CODE_LENGTH) return lengths
-        // Halving flattens the distribution, which shortens the deepest leaves; repeat until the cap holds.
-        freq = LongArray(ALPHABET) { if (freq[it] == 0L) 0L else (freq[it] + 1) / 2 }
+    val lengths = buildLengths(frequencies)
+    // Plain Huffman is already optimal and nearly always within the cap; the
+    // slower length-limited construction only runs for pathological inputs.
+    return if (lengths.max() <= MAX_CODE_LENGTH) lengths else limitedCodeLengths(frequencies, MAX_CODE_LENGTH)
+}
+
+/**
+ * Optimal code lengths subject to no code being longer than [maxLength]
+ * (the package-merge algorithm). Truncating or re-weighting a Huffman tree
+ * to fit a cap gives a valid but needlessly longer code; this finds the
+ * shortest total output that any prefix code under the cap can achieve, so
+ * the cap costs only what it must.
+ *
+ * Idea: each symbol is a "coin" worth 2^-l for every length l it may use,
+ * and a code is complete when the chosen coins sum to n-1. Level d holds the
+ * symbols' weights merged with pairs ("packages") from the level below; the
+ * 2n-2 cheapest items at the top level say how often each symbol is used,
+ * and that count is its code length.
+ */
+internal fun limitedCodeLengths(frequencies: LongArray, maxLength: Int): IntArray {
+    val symbols = (0 until ALPHABET)
+        .filter { frequencies[it] > 0 }
+        .sortedWith(compareBy({ frequencies[it] }, { it }))
+    val n = symbols.size
+    val lengths = IntArray(ALPHABET)
+    if (n == 0) return lengths
+    if (n == 1) { lengths[symbols[0]] = 1; return lengths }
+    require(maxLength >= 1 && n.toLong() <= (1L shl maxLength)) { "$n symbols cannot fit in codes of at most $maxLength bits" }
+
+    // levels[0] is the deepest level (codes of maxLength bits); each later level merges in packages from the one before.
+    val levelWeights = ArrayList<LongArray>()
+    val levelIsLeaf = ArrayList<BooleanArray>()
+    for (d in 0 until maxLength) {
+        val packages = if (d == 0) 0 else levelWeights[d - 1].size / 2
+        val w = LongArray(n + packages)
+        val leaf = BooleanArray(n + packages)
+        var li = 0
+        var pi = 0
+        for (k in w.indices) {
+            val packageWeight = if (pi < packages) levelWeights[d - 1][2 * pi] + levelWeights[d - 1][2 * pi + 1] else Long.MAX_VALUE
+            // Leaves win ties so the result is the same on every run.
+            if (li < n && frequencies[symbols[li]] <= packageWeight) {
+                w[k] = frequencies[symbols[li++]]
+                leaf[k] = true
+            } else {
+                w[k] = packageWeight
+                pi++
+            }
+        }
+        levelWeights.add(w)
+        levelIsLeaf.add(leaf)
     }
+
+    var take = 2 * n - 2
+    for (d in maxLength - 1 downTo 0) {
+        val leaf = levelIsLeaf[d]
+        var leaves = 0
+        for (k in 0 until take) if (leaf[k]) leaves++
+        for (i in 0 until leaves) lengths[symbols[i]]++
+        take = 2 * (take - leaves)
+    }
+    return lengths
 }
 
 private fun buildLengths(freq: LongArray): IntArray {
@@ -174,8 +240,42 @@ fun compress(input: InputStream, out: OutputStream, blockSize: Int = BLOCK_SIZE)
     writer.finish()
 }
 
+/**
+ * How one block will be written. The encoder and `stats` both go through this
+ * so the size `stats` reports is always the size compress produces.
+ */
+private class BlockPlan(
+    val length: Int,
+    val lengths: IntArray,
+    val frequencies: LongArray,
+    val payloadBits: Long,
+    val stored: Boolean,
+) {
+    /** Bytes the block occupies in the stream, header included. */
+    val encodedBytes: Long
+        get() = if (stored) STORED_HEADER_BYTES + length.toLong() else BLOCK_HEADER_BYTES + (payloadBits + 7) / 8
+}
+
+private fun planBlock(data: ByteArray, n: Int): BlockPlan {
+    val freq = countFrequencies(data, n)
+    val lengths = codeLengths(freq)
+    var bits = 0L
+    for (s in 0 until ALPHABET) bits += freq[s] * lengths[s]
+    val huffmanBytes = BLOCK_HEADER_BYTES + (bits + 7) / 8
+    val storedBytes = STORED_HEADER_BYTES + n.toLong()
+    // Data that Huffman coding cannot shrink (already compressed, encrypted, random)
+    // would otherwise grow by the code table; storing it caps the damage at the block header.
+    return BlockPlan(n, lengths, freq, bits, stored = storedBytes <= huffmanBytes)
+}
+
 private fun writeBlock(writer: BitWriter, data: ByteArray, n: Int) {
-    val code = CanonicalCode(codeLengths(countFrequencies(data, n)))
+    val plan = planBlock(data, n)
+    if (plan.stored) {
+        writer.write(n or STORED_FLAG, BLOCK_LENGTH_BITS)
+        writer.writeBytes(data, 0, n)
+        return
+    }
+    val code = CanonicalCode(plan.lengths)
     writer.write(n, BLOCK_LENGTH_BITS)
     for (s in 0 until ALPHABET) writer.write(code.lengths[s], LENGTH_FIELD_BITS)
     val codes = code.codes
@@ -206,10 +306,27 @@ fun decompress(input: InputStream, out: OutputStream, useTable: Boolean = true) 
     val outBuf = ByteArray(1 shl 16)
     var outPos = 0
     while (true) {
-        val blockLength = reader.read(BLOCK_LENGTH_BITS)
+        val word = reader.read(BLOCK_LENGTH_BITS)
         if (reader.overran) throw FormatException("truncated data (missing end marker)")
-        if (blockLength == 0) break
-        if (blockLength < 0 || blockLength > MAX_BLOCK_SIZE) throw FormatException("invalid block length")
+        if (word == 0) break
+        val stored = word and STORED_FLAG != 0
+        val blockLength = word and STORED_FLAG.inv()
+        if (blockLength == 0 || blockLength > MAX_BLOCK_SIZE) throw FormatException("invalid block length")
+
+        if (stored) {
+            // Written bytes must stay in order, so anything still buffered goes out before the raw payload.
+            out.write(outBuf, 0, outPos)
+            outPos = 0
+            var left = blockLength
+            while (left > 0) {
+                val n = minOf(left, outBuf.size)
+                reader.readBytes(outBuf, 0, n)
+                out.write(outBuf, 0, n)
+                left -= n
+            }
+            if (reader.overran) throw FormatException("truncated data")
+            continue
+        }
 
         val lengths = IntArray(ALPHABET) { reader.read(LENGTH_FIELD_BITS) }
         if (reader.overran) throw FormatException("truncated header")
@@ -286,6 +403,8 @@ data class Stats(
     val originalBytes: Long,
     val compressedBytes: Long,
     val blocks: Long,
+    /** Blocks written raw because Huffman coding would not have made them smaller. */
+    val storedBlocks: Long,
     val entropyBitsPerSymbol: Double,
     val averageCodeBits: Double,
     val distinctSymbols: Int,
@@ -301,24 +420,25 @@ fun computeStats(input: InputStream, blockSize: Int = BLOCK_SIZE): Stats {
     val buf = ByteArray(blockSize)
     var n = 0L
     var blocks = 0L
+    var storedBlocks = 0L
     var payloadBits = 0L
-    var payloadBytes = 0L
+    var blockBytes = 0L
     var maxLen = 0
     while (true) {
         val got = readBlock(input, buf)
         if (got == 0) break
-        val freq = countFrequencies(buf, got)
-        val lengths = codeLengths(freq)
-        var bits = 0L
-        for (s in 0 until ALPHABET) {
-            total[s] += freq[s]
-            bits += freq[s] * lengths[s]
-        }
+        val plan = planBlock(buf, got)
+        for (s in 0 until ALPHABET) total[s] += plan.frequencies[s]
         n += got
         blocks++
-        payloadBits += bits
-        payloadBytes += (bits + 7) / 8
-        maxLen = maxOf(maxLen, lengths.max())
+        blockBytes += plan.encodedBytes
+        if (plan.stored) {
+            storedBlocks++
+            payloadBits += 8L * got
+        } else {
+            payloadBits += plan.payloadBits
+            maxLen = maxOf(maxLen, plan.lengths.max())
+        }
     }
     val fixedBytes = MAGIC.size + BLOCK_LENGTH_BITS / 8L
     var entropy = 0.0
@@ -330,8 +450,9 @@ fun computeStats(input: InputStream, blockSize: Int = BLOCK_SIZE): Stats {
     }
     return Stats(
         originalBytes = n,
-        compressedBytes = fixedBytes + blocks * BLOCK_HEADER_BYTES + payloadBytes,
+        compressedBytes = fixedBytes + blockBytes,
         blocks = blocks,
+        storedBlocks = storedBlocks,
         entropyBitsPerSymbol = entropy,
         averageCodeBits = if (n == 0L) 0.0 else payloadBits.toDouble() / n,
         distinctSymbols = total.count { it > 0 },

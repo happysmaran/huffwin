@@ -24,6 +24,16 @@ internal class BitWriter(private val out: OutputStream) {
     }
 
     /**
+     * Copies raw bytes through for blocks that are stored uncompressed. Stored
+     * blocks start on a byte boundary, so bypassing the bit accumulator keeps
+     * incompressible data from being slowed down by per-byte bit shuffling.
+     */
+    fun writeBytes(data: ByteArray, offset: Int, length: Int) {
+        check(nbits == 0) { "raw bytes must start on a byte boundary" }
+        out.write(data, offset, length)
+    }
+
+    /**
      * Pads the final partial byte with zeros. Blocks end on a byte boundary so
      * the decoder can resynchronise without tracking bit offsets across
      * blocks; the padding is ignored because each block states its symbol count.
@@ -103,6 +113,37 @@ internal class BitReader(private val input: InputStream) {
      */
     fun alignToByte() {
         nbits -= nbits % 8
+    }
+
+    /**
+     * Reads the raw payload of a stored block. The bit accumulator is drained
+     * first because read-ahead may already hold the start of the payload; the
+     * rest is copied straight from the input buffer, which keeps stored data
+     * (typically large and incompressible) off the slow bit-by-bit path.
+     * Must be called on a byte boundary.
+     */
+    fun readBytes(dest: ByteArray, offset: Int, length: Int) {
+        var out = offset
+        var left = length
+        while (left > 0 && nbits >= 8) {
+            dest[out++] = read(8).toByte()
+            left--
+        }
+        while (left > 0) {
+            if (pos == lim) {
+                lim = input.read(buf, 0, buf.size)
+                pos = 0
+                if (lim <= 0) {
+                    lim = 0
+                    throw FormatException("truncated data")
+                }
+            }
+            val n = minOf(left, lim - pos)
+            System.arraycopy(buf, pos, dest, out, n)
+            pos += n
+            out += n
+            left -= n
+        }
     }
 
     /** Used after the end marker to reject files with extra bytes appended. */
